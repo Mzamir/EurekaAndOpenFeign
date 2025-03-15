@@ -57,7 +57,7 @@ eureka:
 
 4. Run the application and navigate to `http://localhost:8761` to see the Eureka dashboard.
 
-For a deeper dive into **setting up Eureka Server and understanding its benefits**, stay tuned for our dedicated article on this topic!
+For a deeper dive into **setting up Eureka cluster and understanding its benefits**, stay tuned for our dedicated article on this topic!
 
 ---
 
@@ -78,7 +78,7 @@ Each microservice must include the Eureka client dependency:
 
 ### **Step 2: Configure Each Microservice**
 
-#### **Service A (Producer Service)**
+#### **Service A**
 
 ```yaml
 server:
@@ -92,11 +92,9 @@ eureka:
   client:
     service-url:
       defaultZone: http://localhost:8761/eureka/
-  instance:
-    prefer-ip-address: true
 ```
 
-#### **Service B (Consumer Service)**
+#### **Service B**
 
 ```yaml
 server:
@@ -110,8 +108,6 @@ eureka:
   client:
     service-url:
       defaultZone: http://localhost:8761/eureka/
-  instance:
-    prefer-ip-address: true
 ```
 
 ---
@@ -131,11 +127,10 @@ Instead of manually handling REST calls, **OpenFeign** allows us to define inter
 
 ### **Step 2: Enable Feign Clients**
 
-Add `@EnableFeignClients` in the main class of **Service B**.
+Add `@EnableFeignClients` in the main class of **Service A**.
 
 ```java
 @SpringBootApplication
-@EnableEurekaClient
 @EnableFeignClients
 public class ServiceBApplication {
     public static void main(String[] args) {
@@ -144,13 +139,13 @@ public class ServiceBApplication {
 }
 ```
 
-### **Step 3: Create a Feign Client in Service B**
+### **Step 3: Create a Feign Client in Service A**
 
 ```java
-@FeignClient(name = "service-a")
-public interface ServiceAClient {
-    @GetMapping("/api/message")
-    String getMessage();
+@FeignClient(name = "service-b")
+public interface ServiceBClient {
+    @GetMapping("/serviceB/")
+    ResponseEntity<String> callServiceB();
 }
 ```
 
@@ -158,20 +153,19 @@ public interface ServiceAClient {
 
 ```java
 @RestController
-@RequestMapping("/api")
-public class ServiceBController {
-    
-    @Autowired
-    private ServiceAClient serviceAClient;
-    
-    @GetMapping("/fetch-message")
-    public String fetchMessage() {
-        return "Message from Service A: " + serviceAClient.getMessage();
+@RequiredArgsConstructor
+public class Controller {
+
+    private final ServiceBClient bClient;
+
+    @GetMapping("callServiceB")
+    public ResponseEntity<String> callServiceB() {
+        return bClient.callServiceB();
     }
 }
 ```
 
-Now, when you call `http://localhost:8082/api/fetch-message`, Service B will communicate with Service A via Eureka and OpenFeign.
+Now, when you call `http://localhost:8001/callServiceB`, Service A will communicate with Service B via Eureka and OpenFeign.
 
 ---
 
@@ -183,10 +177,6 @@ In this guide, we covered:
 ✅ How **OpenFeign** simplifies inter-service communication.
 
 ### **🚀 What’s Next?**
-
-- Deploy services on **Docker and Kubernetes**.
-- Use **Spring Cloud Gateway** for API Gateway management.
-- Implement **JWT Authentication** between services.
 
 Let me know in the comments if you have any questions! 🚀
 
