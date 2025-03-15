@@ -10,8 +10,6 @@ In this guide, we will explore how to:
 - Register microservices as **Eureka Clients**.
 - Use **OpenFeign** to enable seamless communication between services.
 
-For a detailed comparison between **REST and OpenFeign**, check out our upcoming article where we break down their differences, advantages, and best use cases.
-
 ---
 
 ## 1. Setting Up Eureka Server
